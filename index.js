@@ -15,7 +15,7 @@ function onInstallation(bot, installer) {
                 console.log(err);
             } else {
                 convo.say('I am a bot that has just joined your team');
-                convo.say('You must now /invite me to a channel so that I can be of use!');
+                convo.say('You must now /invite me to a channel so I can be of use!');
             }
         });
     }
@@ -56,7 +56,10 @@ if (process.env.TOKEN || process.env.SLACK_TOKEN) {
     process.exit(1);
 }
 
-
+var apiai = require('botkit-middleware-apiai')({
+   token: process.env.APIAI_TOKEN
+});
+controller.middleware.receive.use(apiai.receive);
 /**
  * A demonstration for how to handle websocket events. In this case, just log when we have and have not
  * been disconnected from the websocket. In the future, it would be super awesome to be able to specify
@@ -82,14 +85,28 @@ controller.on('rtm_close', function (bot) {
 // BEGIN EDITING HERE!
 
 controller.on('bot_channel_join', function (bot, message) {
-    bot.reply(message, "I'm here!")
+    bot.reply(message, "What's good, yo? I am finally in the building!")
 });
 
-controller.hears('hello', 'direct_message', function (bot, message) {
-    bot.reply(message, 'Hello!');
+controller.hears('hello', ['direct_message', 'mention', 'direct_mention'], function (bot, message) {
+    bot.reply(message, 'Oh, you getting familiar huh? Hi to you and your fam. Send them some love from Talos');
 });
 
 
+controller.hears(['hello'], ['direct_message', 'mention', 'direct_mention'], apiai.hears, function (
+bot, message) {
+   bot.reply(message, 'Oh, you getting familiar huh? Hi to you and your fam. Send them some love from Talos');
+});
+
+controller.hears(['what do you do'], ['direct_message', 'mention', 'direct_mention'], apiai.hears, function (
+bot, message) {
+   bot.reply(message, message.fulfillment.speech);
+});
+
+controller.hears(['shut up'], ['direct_message', 'mention', 'direct_mention'], apiai.hears, function (
+bot, message) {
+   bot.reply(message, message.fulfillment.speech);
+});
 /**
  * AN example of what could be:
  * Any un-handled direct mention gets a reaction and a pat response!
